@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ILanguage, IVocabulary } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import VocabularyList from "@/components/VocabularyList";
 import { decodeTopicSlug } from "@/lib/utils";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorState from "@/components/ErrorState";
 import EmptyState from "@/components/EmptyState";
-
-import { useAsyncData } from "@/hooks/useAsyncData";
+import { api } from "@/lib/api";
 
 export default function WorkbookPage() {
   const params = useParams();
@@ -23,44 +22,20 @@ export default function WorkbookPage() {
     data: language,
     isLoading: isLoadingLanguage,
     error: languageError,
-  } = useAsyncData<ILanguage>(async () => {
-    const response = await fetch("/api/languages");
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error("No languages available");
-      }
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to fetch language data");
-    }
-    const languages = await response.json();
-    const foundLanguage = languages.find(
-      (lang: ILanguage) => lang.code === languageCode
-    );
-    if (!foundLanguage) {
-      throw new Error("Language not found");
-    }
-    return foundLanguage;
+  } = useQuery({
+    queryKey: ["language", languageCode],
+    queryFn: () => api.fetchLanguageByCode(languageCode),
+    enabled: !!languageCode,
   });
 
   const {
     data: availableTopics,
     isLoading: isLoadingTopics,
     error: topicsError,
-  } = useAsyncData<string[]>(async () => {
-    const response = await fetch(
-      `/api/vocabulary?languageCode=${languageCode}`
-    );
-    if (!response.ok) {
-      if (response.status === 404) {
-        // Return empty array for 404, not an error
-        return [];
-      }
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to fetch topics");
-    }
-    const data = (await response.json()) as IVocabulary[];
-    const topics = [...new Set(data.map((item: IVocabulary) => item.category))];
-    return topics;
+  } = useQuery({
+    queryKey: ["topics", languageCode],
+    queryFn: () => api.fetchTopics(languageCode),
+    enabled: !!languageCode,
   });
 
   // Decode topic when availableTopics changes
@@ -80,33 +55,15 @@ export default function WorkbookPage() {
     data: vocabulary,
     isLoading: isLoadingVocabulary,
     error: vocabularyError,
-  } = useAsyncData<IVocabulary[]>(
-    async () => {
-      if (!decodedTopic) return [];
-
-      const response = await fetch(
-        `/api/vocabulary?languageCode=${languageCode}&category=${encodeURIComponent(
-          decodedTopic
-        )}`
-      );
-      if (!response.ok) {
-        if (response.status === 404) {
-          // Return empty array for 404, not an error
-          return [];
-        }
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch vocabulary");
-      }
-      return response.json();
-    },
-    {
-      dependencies: [languageCode, decodedTopic],
-      skip: !decodedTopic, // Skip fetching until we have the decoded topic
-    }
-  );
+  } = useQuery({
+    queryKey: ["vocabulary", languageCode, decodedTopic],
+    queryFn: () => api.fetchVocabulary(languageCode, decodedTopic),
+    enabled: !!languageCode && !!decodedTopic,
+  });
 
   const isLoading = isLoadingLanguage || isLoadingTopics || isLoadingVocabulary;
-  const error = languageError || topicsError || vocabularyError;
+  const error =
+    languageError?.message || topicsError?.message || vocabularyError?.message;
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />;
@@ -143,7 +100,7 @@ export default function WorkbookPage() {
     );
   }
 
-  if (!isLoading || !language || !decodedTopic) {
+  if (!language || !decodedTopic) {
     return (
       <EmptyState
         icon={
