@@ -143,7 +143,7 @@ export default function WorkbookPage() {
     );
   }
 
-  if (!language || !decodedTopic) {
+  if (!isLoading || !language || !decodedTopic) {
     return (
       <EmptyState
         icon={
