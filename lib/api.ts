@@ -1,4 +1,5 @@
 import { ILanguage, IVocabulary } from "@/types";
+import { extractMainTopic } from "@/lib/utils";
 
 export const api = {
   async fetchLanguages(): Promise<ILanguage[]> {
@@ -37,18 +38,22 @@ export const api = {
       throw new Error(errorData.error || "Failed to fetch topics");
     }
     const data = (await response.json()) as IVocabulary[];
-    const topics = [...new Set(data.map((item: IVocabulary) => item.category))];
+    // Extract main topics and remove duplicates
+    const topics = [
+      ...new Set(
+        data.map((item: IVocabulary) => extractMainTopic(item.category))
+      ),
+    ];
     return topics;
   },
 
   async fetchVocabulary(
     languageCode: string,
-    category: string
+    mainTopic: string
   ): Promise<IVocabulary[]> {
+    // Fetch all vocabulary for the language
     const response = await fetch(
-      `/api/vocabulary?languageCode=${languageCode}&category=${encodeURIComponent(
-        category
-      )}`
+      `/api/vocabulary?languageCode=${languageCode}`
     );
     if (!response.ok) {
       if (response.status === 404) {
@@ -58,6 +63,9 @@ export const api = {
       const errorData = await response.json();
       throw new Error(errorData.error || "Failed to fetch vocabulary");
     }
-    return response.json();
+    const data = (await response.json()) as IVocabulary[];
+
+    // Filter vocabulary to only include items that match the main topic
+    return data.filter((item) => extractMainTopic(item.category) === mainTopic);
   },
 };

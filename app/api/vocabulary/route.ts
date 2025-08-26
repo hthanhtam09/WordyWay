@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     const languageCode = searchParams.get("languageCode");
     const category = searchParams.get("category");
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const limit = parseInt(searchParams.get("limit") || "1000");
 
     // Generate cache key for this specific query
     const cacheKey = generateCacheKey.vocabulary(

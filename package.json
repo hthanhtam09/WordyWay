@@ -9,6 +9,7 @@
     "lint": "eslint",
     "import-csv": "tsx scripts/import-csv.ts",
     "check-db": "tsx scripts/check-db.ts",
+    "merge-csv": "tsx scripts/merge-csv.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },

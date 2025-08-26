@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { ILanguage, IVocabulary } from "@/types";
-import { createTopicPath } from "@/lib/utils";
+import { createTopicPath, extractMainTopic } from "@/lib/utils";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorState from "@/components/ErrorState";
 import EmptyState from "@/components/EmptyState";
@@ -73,8 +73,9 @@ export default function LanguageWorkbookPage() {
     isLoadingVocabulary ||
     vocabularyError ||
     vocabulary;
+  // Group topics by main topic name
   const availableTopics = vocabulary
-    ? [...new Set(vocabulary.map((item) => item.category))]
+    ? [...new Set(vocabulary.map((item) => extractMainTopic(item.category)))]
     : [];
 
   // Handle topic selection and navigation to workbook
@@ -223,7 +224,7 @@ export default function LanguageWorkbookPage() {
                 tabIndex={0}
                 aria-label={`Start learning ${topic} topic`}
               >
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-card-foreground">
                     {topic}
                   </h3>
@@ -241,9 +242,6 @@ export default function LanguageWorkbookPage() {
                     />
                   </svg>
                 </div>
-                <p className="text-muted-foreground text-sm">
-                  Click to start learning vocabulary for this topic
-                </p>
               </div>
             ))}
           </div>

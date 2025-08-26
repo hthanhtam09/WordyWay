@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import VocabularyList from "@/components/VocabularyList";
-import { decodeTopicSlug } from "@/lib/utils";
+import TopicTabs from "@/components/TopicTabs";
+import { decodeTopicSlug, extractMainTopic } from "@/lib/utils";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorState from "@/components/ErrorState";
 import EmptyState from "@/components/EmptyState";
@@ -41,7 +41,11 @@ export default function WorkbookPage() {
   // Decode topic when availableTopics changes
   useEffect(() => {
     if (availableTopics && availableTopics.length > 0) {
-      const decoded = decodeTopicSlug(topicSlug, availableTopics);
+      // Extract main topics from all available topics
+      const mainTopics = [
+        ...new Set(availableTopics.map((topic) => extractMainTopic(topic))),
+      ];
+      const decoded = decodeTopicSlug(topicSlug, mainTopics);
       if (!decoded) {
         // If topic not found, redirect to language workbook
         router.push(`/workbook/${languageCode}`);
@@ -60,6 +64,12 @@ export default function WorkbookPage() {
     queryFn: () => api.fetchVocabulary(languageCode, decodedTopic),
     enabled: !!languageCode && !!decodedTopic,
   });
+
+  // Filter vocabulary to only include items that match the main topic
+  const filteredVocabulary =
+    vocabulary?.filter(
+      (item) => extractMainTopic(item.category) === decodedTopic
+    ) || [];
 
   const isLoading = isLoadingLanguage || isLoadingTopics || isLoadingVocabulary;
   const error =
@@ -124,7 +134,7 @@ export default function WorkbookPage() {
     );
   }
 
-  if (!vocabulary || vocabulary.length === 0) {
+  if (!filteredVocabulary || filteredVocabulary.length === 0) {
     return (
       <EmptyState
         icon={
@@ -195,7 +205,7 @@ export default function WorkbookPage() {
           </p>
         </div>
 
-        <VocabularyList vocabulary={vocabulary} language={language} />
+        <TopicTabs vocabulary={filteredVocabulary} language={language} />
       </div>
     </div>
   );
