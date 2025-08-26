@@ -7,7 +7,7 @@ A modern language learning website built with Next.js, TypeScript, and MongoDB t
 - 🌍 **Multi-language Support**: Support for 10+ languages including English, Spanish, French, German, and more
 - 🔊 **Pronunciation**: Click pronunciation buttons to hear words spoken using Web Speech API
 - 📊 **CSV Import**: Import vocabulary data from CSV files
-- 🎯 **Filtering & Search**: Filter by category, difficulty level, and search terms
+- 🎯 **Filtering & Search**: Filter by category and search terms
 - 🌙 **Dark Mode**: Toggle between light and dark themes
 - 📱 **Responsive Design**: Mobile-first responsive design
 - ♿ **Accessibility**: Full keyboard navigation and screen reader support
@@ -119,16 +119,16 @@ The application supports importing vocabulary from CSV files with the following 
 | `translation`   | Yes      | Translation to English                                   |
 | `pronunciation` | Yes      | Phonetic pronunciation guide                             |
 | `category`      | No       | Word category (e.g., "Greetings", "Food")                |
-| `difficulty`    | No       | Difficulty level: "beginner", "intermediate", "advanced" |
 | `example`       | No       | Example sentence using the word                          |
+| `exampleTranslation` | No | Translation of the example sentence                    |
 
 ### Sample CSV
 
 ```csv
-word,translation,pronunciation,category,difficulty,example
-hello,xin chào,həˈloʊ,Greetings,beginner,Hello, how are you?
-goodbye,tạm biệt,ˌɡʊdˈbaɪ,Greetings,beginner,Goodbye, see you later!
-water,nước,ˈwɔtər,Basic Needs,beginner,I need a glass of water
+word,translation,pronunciation,category,example,exampleTranslation
+hello,xin chào,həˈloʊ,Greetings,Hello, how are you?,Xin chào, bạn khỏe không?
+goodbye,tạm biệt,ˌɡʊdˈbaɪ,Greetings,Goodbye, see you later!,Tạm biệt, hẹn gặp lại!
+water,nước,ˈwɔtər,Basic Needs,I need a glass of water,Tôi cần một ly nước
 ```
 
 ### Testing Import Setup
@@ -155,7 +155,7 @@ For detailed documentation, see `data/README.md`.
 ### Vocabulary
 
 - `GET /api/vocabulary` - Get vocabulary with optional filters
-  - Query params: `languageCode`, `category`, `difficulty`, `limit`
+  - Query params: `languageCode`, `category`, `limit`
 - `POST /api/vocabulary` - Create new vocabulary item
 
 ### CSV Import
@@ -187,8 +187,8 @@ interface IVocabulary {
   pronunciation: string; // Phonetic pronunciation
   languageCode: string; // Reference to language
   category: string; // Word category
-  difficulty: "beginner" | "intermediate" | "advanced";
   example: string; // Example sentence
+  exampleTranslation: string; // Translation of example sentence
   isActive: boolean; // Whether item is active
   createdAt: Date; // Creation timestamp
   updatedAt: Date; // Last update timestamp
@@ -201,7 +201,7 @@ interface IVocabulary {
 2. **View Vocabulary**: Browse vocabulary items with filtering and search options
 3. **Practice Pronunciation**: Click the pronunciation button (🔊) to hear words spoken
 4. **Import Data**: Use the CSV import feature to add new vocabulary
-5. **Filter & Search**: Use category/difficulty filters and search to find specific words
+5. **Filter & Search**: Use category filters and search to find specific words
 
 ## Development
 

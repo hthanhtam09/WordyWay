@@ -42,8 +42,16 @@ export function useAsyncData<T>(
       }
     } catch (err) {
       if (isMountedRef.current) {
-        const errorMessage =
-          err instanceof Error ? err.message : "An error occurred";
+        let errorMessage = "An error occurred";
+
+        if (err instanceof Error) {
+          errorMessage = err.message;
+        } else if (typeof err === "string") {
+          errorMessage = err;
+        } else if (err && typeof err === "object" && "error" in err) {
+          errorMessage = String(err.error);
+        }
+
         setError(errorMessage);
         onError?.(errorMessage);
       }
@@ -100,8 +108,16 @@ export function useAsyncDataMultiple<T>(
       }
     } catch (err) {
       if (isMountedRef.current) {
-        const errorMessage =
-          err instanceof Error ? err.message : "An error occurred";
+        let errorMessage = "An error occurred";
+
+        if (err instanceof Error) {
+          errorMessage = err.message;
+        } else if (typeof err === "string") {
+          errorMessage = err;
+        } else if (err && typeof err === "object" && "error" in err) {
+          errorMessage = String(err.error);
+        }
+
         setError(errorMessage);
         onError?.(errorMessage);
       }

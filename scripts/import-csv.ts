@@ -19,7 +19,6 @@ interface CSVRow {
   translation: string;
   pronunciation: string;
   category?: string;
-  difficulty?: string;
   example?: string;
   exampleTranslation?: string;
 }
@@ -29,6 +28,17 @@ interface ImportOptions {
   languageCode: string;
   dryRun?: boolean;
   verbose?: boolean;
+}
+
+interface ProcessedVocabulary {
+  word: string;
+  translation: string;
+  pronunciation: string;
+  languageCode: string;
+  category: string;
+  example: string;
+  exampleTranslation: string;
+  isActive: boolean;
 }
 
 const handleImport = async (options: ImportOptions): Promise<void> => {
@@ -202,24 +212,30 @@ const handleImport = async (options: ImportOptions): Promise<void> => {
 
     console.log(`📊 Found ${data.length} rows in CSV`);
 
-    // Process data
-    const vocabularyData = (data as CSVRow[]).map((row, index) => ({
-      word: row.word?.trim(),
-      translation: row.translation?.trim(),
-      pronunciation: row.pronunciation?.trim(),
-      languageCode: languageCode.toUpperCase(),
-      category: row.category?.trim() || "General",
-      difficulty: (row.difficulty?.trim() || "beginner") as
-        | "beginner"
-        | "intermediate"
-        | "advanced",
-      example: row.example?.trim() || "",
-      exampleTranslation: row.exampleTranslation?.trim() || "",
-      isActive: true,
-    }));
+    // Process data with strict type checking
+    const vocabularyData: ProcessedVocabulary[] = (data as CSVRow[]).map((row, index) => {
+      // Type-safe data processing
+      const word = row.word?.trim();
+      const translation = row.translation?.trim();
+      const pronunciation = row.pronunciation?.trim();
+      const category = row.category?.trim() || "General";
+      const example = row.example?.trim() || "";
+      const exampleTranslation = row.exampleTranslation?.trim() || "";
 
-    // Validate data
-    const validData = vocabularyData.filter((item, index) => {
+      return {
+        word,
+        translation,
+        pronunciation,
+        languageCode: languageCode.toUpperCase(),
+        category,
+        example,
+        exampleTranslation,
+        isActive: true,
+      };
+    });
+
+    // Validate data with strict type checking
+    const validData: ProcessedVocabulary[] = vocabularyData.filter((item, index) => {
       if (!item.word || !item.translation || !item.pronunciation) {
         if (verbose) {
           console.warn(
@@ -335,12 +351,12 @@ Features:
   📊 Detailed import reporting and statistics
 
 CSV Format:
-  word,translation,pronunciation,category,difficulty,example,exampleTranslation
-  hello,xin chào,həˈloʊ,Greetings,beginner,Hello, how are you?,Xin chào, bạn khỏe không?
-  goodbye,tạm biệt,ˌɡʊdˈbaɪ,Greetings,beginner,Goodbye, see you later!,Tạm biệt, hẹn gặp lại!
+  word,translation,pronunciation,category,example,exampleTranslation
+  hello,xin chào,həˈloʊ,Greetings,Hello, how are you?,Xin chào, bạn khỏe không?
+  goodbye,tạm biệt,ˌɡʊdˈbaɪ,Greetings,Goodbye, see you later!,Tạm biệt, hẹn gặp lại!
 
 Required fields: word, translation, pronunciation
-Optional fields: category, difficulty, example, exampleTranslation
+Optional fields: category, example, exampleTranslation
 
 Supported Language Codes:
   EN 🇺🇸 (English), VI 🇻🇳 (Vietnamese), FR 🇫🇷 (French), DE 🇩🇪 (German)

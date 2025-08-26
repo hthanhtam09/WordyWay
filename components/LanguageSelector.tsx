@@ -33,8 +33,8 @@ const LanguageSelector = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 className="text-lg font-semibold mb-4 text-gray-900">
+    <div className="bg-card rounded-lg shadow-sm border border-border p-6">
+      <h2 className="text-lg font-semibold mb-4 text-card-foreground">
         Select Language
       </h2>
 
@@ -42,7 +42,7 @@ const LanguageSelector = ({
         <button
           onClick={toggleDropdown}
           onKeyDown={(e) => e.key === "Enter" && toggleDropdown()}
-          className="w-full flex items-center justify-between px-4 py-3 text-left bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+          className="w-full flex items-center justify-between px-4 py-3 text-left bg-secondary border border-input rounded-lg hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           aria-label="Select language"
@@ -51,14 +51,14 @@ const LanguageSelector = ({
             {selectedLanguage && (
               <>
                 <span className="text-2xl">{selectedLanguage.flag}</span>
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-card-foreground">
                   {selectedLanguage.name}
                 </span>
               </>
             )}
           </div>
           <svg
-            className={`w-5 h-5 text-gray-400 transition-transform ${
+            className={`w-5 h-5 text-muted-foreground transition-transform ${
               isOpen ? "rotate-180" : ""
             }`}
             fill="none"
@@ -75,24 +75,24 @@ const LanguageSelector = ({
         </button>
 
         {isOpen && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-60 overflow-auto">
             {languages.map((language) => (
               <div
                 key={language._id}
                 onClick={() => handleLanguageSelect(language)}
                 onKeyDown={(e) => handleKeyDown(e, language)}
-                className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 cursor-pointer focus:bg-gray-50 focus:outline-none"
+                className="flex items-center space-x-3 px-4 py-3 hover:bg-accent cursor-pointer focus:bg-accent focus:outline-none"
                 tabIndex={0}
                 role="option"
                 aria-selected={selectedLanguage?._id === language._id}
               >
                 <span className="text-2xl">{language.flag}</span>
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-popover-foreground">
                   {language.name}
                 </span>
                 {selectedLanguage?._id === language._id && (
                   <svg
-                    className="w-5 h-5 text-blue-600 ml-auto"
+                    className="w-5 h-5 text-primary ml-auto"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -110,14 +110,14 @@ const LanguageSelector = ({
       </div>
 
       {selectedLanguage && (
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
           <div className="flex items-center space-x-3">
             <span className="text-2xl">{selectedLanguage.flag}</span>
             <div>
-              <h3 className="font-semibold text-blue-900">
+              <h3 className="font-semibold text-primary">
                 {selectedLanguage.name} Selected
               </h3>
-              <p className="text-sm text-blue-700">
+              <p className="text-sm text-primary/80">
                 Ready to start learning? Click the button below to begin your
                 journey.
               </p>

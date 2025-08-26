@@ -15,7 +15,6 @@ export interface IVocabulary {
   pronunciation: string;
   languageCode: string;
   category: string;
-  difficulty: "beginner" | "intermediate" | "advanced";
   example: string;
   exampleTranslation: string;
   isActive: boolean;

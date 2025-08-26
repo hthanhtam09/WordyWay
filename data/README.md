@@ -71,13 +71,13 @@ npm run import-csv data/german-vocab.csv DE --verbose
 ## 📋 CSV Format
 
 ```csv
-word,translation,pronunciation,category,difficulty,example
-hello,xin chào,həˈloʊ,Greetings,beginner,Hello, how are you?
-goodbye,tạm biệt,ˌɡʊdˈbaɪ,Greetings,beginner,Goodbye, see you later!
+word,translation,pronunciation,category,example,exampleTranslation
+hello,xin chào,həˈloʊ,Greetings,Hello, how are you?,Xin chào, bạn khỏe không?
+goodbye,tạm biệt,ˌɡʊdˈbaɪ,Greetings,Goodbye, see you later!,Tạm biệt, hẹn gặp lại!
 ```
 
 **Required fields**: `word`, `translation`, `pronunciation`
-**Optional fields**: `category`, `difficulty`, `example`
+**Optional fields**: `category`, `example`, `exampleTranslation`
 
 ## 🎯 Benefits of Auto-Language Creation
 

@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SuspenseWrapper from "@/components/SuspenseWrapper";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import Header from "@/components/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pronounce - Language Learning App",
+  title: "WordyWay - Language Learning App",
   description:
     "Learn languages with interactive vocabulary and pronunciation guides",
 };
@@ -28,11 +30,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        <ErrorBoundary>
-          <SuspenseWrapper>{children}</SuspenseWrapper>
-        </ErrorBoundary>
+        <ThemeProvider>
+          <ErrorBoundary>
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1">
+                <SuspenseWrapper>{children}</SuspenseWrapper>
+              </main>
+            </div>
+          </ErrorBoundary>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -6,7 +6,6 @@ export interface IVocabulary {
   pronunciation: string;
   languageCode: string;
   category: string;
-  difficulty: "beginner" | "intermediate" | "advanced";
   example: string;
   exampleTranslation: string;
   isActive: boolean;
@@ -37,11 +36,6 @@ const vocabularySchema = new mongoose.Schema<IVocabulary>(
       type: String,
       required: true,
     },
-    difficulty: {
-      type: String,
-      enum: ["beginner", "intermediate", "advanced"],
-      default: "beginner",
-    },
     example: {
       type: String,
       default: "",
@@ -61,7 +55,7 @@ const vocabularySchema = new mongoose.Schema<IVocabulary>(
 );
 
 // Index for better query performance
-vocabularySchema.index({ languageCode: 1, category: 1, difficulty: 1 });
+vocabularySchema.index({ languageCode: 1, category: 1 });
 vocabularySchema.index({ word: 1, languageCode: 1 });
 
 export default mongoose.models.Vocabulary ||
