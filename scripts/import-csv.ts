@@ -199,78 +199,95 @@ const handleImport = async (options: ImportOptions): Promise<void> => {
     const csvContent = fs.readFileSync(filePath, "utf-8");
     const { data, errors } = Papa.parse(csvContent, {
       header: true,
-      skipEmptyLines: true,
+      skipEmptyLines: "greedy",
+      dynamicTyping: false,
+      transform: (value: string) => value.trim(),
+      complete: (results) => {
+        if (results.errors.length > 0) {
+          console.log(
+            `📊 Parsed ${results.data.length} rows with ${results.errors.length} warnings`
+          );
+        }
+      },
     });
 
     if (errors.length > 0) {
-      console.error("❌ CSV parsing errors:");
-      errors.forEach((error) =>
-        console.error(`  - Row ${error.row}: ${error.message}`)
+      console.warn(
+        "⚠️  CSV parsing warnings (some rows may have formatting issues):"
       );
-      process.exit(1);
+      errors.forEach((error) =>
+        console.warn(`  - Row ${error.row}: ${error.message}`)
+      );
+      console.log(
+        "🔄 Continuing with import, problematic rows will be handled..."
+      );
     }
 
     console.log(`📊 Found ${data.length} rows in CSV`);
 
-    // Process data with strict type checking
-    const vocabularyData: ProcessedVocabulary[] = (data as CSVRow[]).map((row, index) => {
-      // Type-safe data processing
-      const word = row.word?.trim();
-      const translation = row.translation?.trim();
-      const pronunciation = row.pronunciation?.trim();
-      const category = row.category?.trim() || "General";
-      const example = row.example?.trim() || "";
-      const exampleTranslation = row.exampleTranslation?.trim() || "";
+    // Process data with robust error handling
+    const vocabularyData: ProcessedVocabulary[] = [];
 
-      return {
-        word,
-        translation,
-        pronunciation,
-        languageCode: languageCode.toUpperCase(),
-        category,
-        example,
-        exampleTranslation,
-        isActive: true,
-      };
-    });
-
-    // Validate data with strict type checking
-    const validData: ProcessedVocabulary[] = vocabularyData.filter((item, index) => {
-      if (!item.word || !item.translation || !item.pronunciation) {
-        if (verbose) {
+    (data as Record<string, unknown>[]).forEach((row, index) => {
+      try {
+        // Handle cases where row might be malformed
+        if (!row || typeof row !== "object") {
           console.warn(
-            `⚠️  Row ${index + 2}: Missing required fields (word: ${
-              item.word
-            }, translation: ${item.translation}, pronunciation: ${
-              item.pronunciation
-            })`
+            `⚠️  Skipping malformed row ${index + 1}: Invalid row data`
+          );
+          return;
+        }
+
+        // Type-safe data processing with fallbacks
+        const word = (row.word || row[0] || "").toString().trim();
+        const translation = (row.translation || row[1] || "").toString().trim();
+        const pronunciation = (row.pronunciation || row[2] || "")
+          .toString()
+          .trim();
+        const category = (row.category || row[3] || "General")
+          .toString()
+          .trim();
+        const example = (row.example || row[4] || "").toString().trim();
+        const exampleTranslation = (row.exampleTranslation || row[5] || "")
+          .toString()
+          .trim();
+
+        // Only add if we have the required fields
+        if (word && translation && pronunciation) {
+          vocabularyData.push({
+            word,
+            translation,
+            pronunciation,
+            languageCode: languageCode.toUpperCase(),
+            category: category || "General",
+            example: example || "",
+            exampleTranslation: exampleTranslation || "",
+            isActive: true,
+          });
+        } else {
+          console.warn(
+            `⚠️  Skipping row ${index + 1}: Missing required fields`
           );
         }
-        return false;
+      } catch (error) {
+        console.warn(`⚠️  Error processing row ${index + 1}: ${error}`);
       }
-      return true;
     });
 
-    const invalidCount = vocabularyData.length - validData.length;
-    if (invalidCount > 0) {
-      console.warn(
-        `⚠️  ${invalidCount} rows skipped due to missing required fields`
-      );
-    }
-
-    if (validData.length === 0) {
+    // Data is already validated during processing
+    if (vocabularyData.length === 0) {
       console.error("❌ No valid vocabulary data found");
       process.exit(1);
     }
 
     console.log(
-      `✅ ${validData.length} valid vocabulary items ready for import`
+      `✅ ${vocabularyData.length} valid vocabulary items ready for import`
     );
 
     if (dryRun) {
       console.log("\n🔍 DRY RUN - No data will be imported");
       console.log("Sample data:");
-      validData.slice(0, 3).forEach((item, index) => {
+      vocabularyData.slice(0, 3).forEach((item, index) => {
         console.log(
           `  ${index + 1}. ${item.word} → ${item.translation} [${
             item.pronunciation
@@ -282,7 +299,7 @@ const handleImport = async (options: ImportOptions): Promise<void> => {
 
     // Check for duplicates
     const existingWords = await Vocabulary.find({
-      word: { $in: validData.map((item) => item.word) },
+      word: { $in: vocabularyData.map((item) => item.word) },
       languageCode: languageCode.toUpperCase(),
     });
 
@@ -293,7 +310,7 @@ const handleImport = async (options: ImportOptions): Promise<void> => {
       existingWords.forEach((word) => console.log(`  - ${word.word}`));
 
       // Filter out existing words
-      const newWords = validData.filter(
+      const newWords = vocabularyData.filter(
         (item) => !existingWords.some((existing) => existing.word === item.word)
       );
 
@@ -303,17 +320,17 @@ const handleImport = async (options: ImportOptions): Promise<void> => {
       }
 
       console.log(`📝 ${newWords.length} new words will be imported`);
-      validData.splice(0, validData.length, ...newWords);
+      vocabularyData.splice(0, vocabularyData.length, ...newWords);
     }
 
     // Import data
     console.log("🚀 Importing vocabulary...");
-    const result = await Vocabulary.insertMany(validData);
+    const result = await Vocabulary.insertMany(vocabularyData);
 
     console.log(`✅ Successfully imported ${result.length} vocabulary items`);
     console.log(`📊 Total processed: ${data.length}`);
-    console.log(`✅ Valid items: ${validData.length}`);
-    console.log(`❌ Skipped: ${invalidCount}`);
+    console.log(`✅ Valid items: ${vocabularyData.length}`);
+    console.log(`❌ Skipped: ${data.length - vocabularyData.length}`);
     console.log(`🔄 Language: ${language.name} (${language.code})`);
   } catch (error) {
     console.error("❌ Error during import:", error);
