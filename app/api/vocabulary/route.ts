@@ -28,20 +28,25 @@ export async function GET(request: NextRequest) {
     // Use cached function with specific parameters
     const vocabulary = await unstable_cache(
       async () => {
-        await connectToDatabase();
+        try {
+          await connectToDatabase();
 
-        const filter: {
-          isActive: boolean;
-          languageCode?: string;
-          category?: string;
-        } = { isActive: true };
+          const filter: {
+            isActive: boolean;
+            languageCode?: string;
+            category?: string;
+          } = { isActive: true };
 
-        if (languageCode) filter.languageCode = languageCode;
-        if (category) filter.category = category;
+          if (languageCode) filter.languageCode = languageCode;
+          if (category) filter.category = category;
 
-        return await Vocabulary.find(filter)
-          .sort({ createdAt: -1 })
-          .limit(limit);
+          return await Vocabulary.find(filter)
+            .sort({ createdAt: -1 })
+            .limit(limit);
+        } catch (error) {
+          console.error("Database connection error:", error);
+          throw new Error("Database connection failed");
+        }
       },
       [cacheKey],
       {
@@ -71,6 +76,21 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching vocabulary:", error);
+
+    // Check if it's a database connection error
+    if (
+      error instanceof Error &&
+      error.message === "Database connection failed"
+    ) {
+      return NextResponse.json(
+        { error: "Database connection failed. Please try again later." },
+        {
+          status: 503,
+          headers: getCacheHeaders(CACHE_DURATIONS.SHORT),
+        }
+      );
+    }
+
     return NextResponse.json(
       { error: "Failed to fetch vocabulary" },
       {
@@ -110,6 +130,21 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error creating vocabulary:", error);
+
+    // Check if it's a database connection error
+    if (
+      error instanceof Error &&
+      error.message.includes("Database connection failed")
+    ) {
+      return NextResponse.json(
+        { error: "Database connection failed. Please try again later." },
+        {
+          status: 503,
+          headers: getCacheHeaders(CACHE_DURATIONS.SHORT),
+        }
+      );
+    }
+
     return NextResponse.json(
       { error: "Failed to create vocabulary" },
       {

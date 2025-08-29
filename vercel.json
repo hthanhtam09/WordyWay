@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "functions": {
+    "app/api/languages/route.ts": {
+      "maxDuration": 10
+    },
+    "app/api/vocabulary/route.ts": {
+      "maxDuration": 10
+    },
+    "app/api/health/route.ts": {
+      "maxDuration": 5
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/health",
+      "dest": "/api/health"
+    }
+  ]
+}

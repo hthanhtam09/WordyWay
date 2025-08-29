@@ -22,6 +22,24 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Ensure API routes are properly handled during build
+  typescript: {
+    // Don't fail build on type errors for API routes
+    ignoreBuildErrors: false,
+  },
+  // Handle environment variables properly
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
+  // Ensure proper handling of server-side code
+  serverRuntimeConfig: {
+    // Will only be available on the server side
+    mySecret: process.env.MONGODB_URI,
+  },
+  publicRuntimeConfig: {
+    // Will be available on both server and client
+    staticFolder: "/static",
+  },
 };
 
 export default nextConfig;

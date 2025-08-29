@@ -13,8 +13,13 @@ import {
 // Cached function to fetch languages
 const getCachedLanguages = unstable_cache(
   async () => {
-    await connectToDatabase();
-    return await Language.find({ isActive: true }).sort({ name: 1 });
+    try {
+      await connectToDatabase();
+      return await Language.find({ isActive: true }).sort({ name: 1 });
+    } catch (error) {
+      console.error("Database connection error:", error);
+      throw new Error("Database connection failed");
+    }
   },
   [generateCacheKey.languages()],
   {
@@ -42,6 +47,21 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Error fetching languages:", error);
+
+    // Check if it's a database connection error
+    if (
+      error instanceof Error &&
+      error.message === "Database connection failed"
+    ) {
+      return NextResponse.json(
+        { error: "Database connection failed. Please try again later." },
+        {
+          status: 503,
+          headers: getCacheHeaders(CACHE_DURATIONS.SHORT),
+        }
+      );
+    }
+
     return NextResponse.json(
       { error: "Failed to fetch languages" },
       {
@@ -69,6 +89,21 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error creating language:", error);
+
+    // Check if it's a database connection error
+    if (
+      error instanceof Error &&
+      error.message.includes("Database connection failed")
+    ) {
+      return NextResponse.json(
+        { error: "Database connection failed. Please try again later." },
+        {
+          status: 503,
+          headers: getCacheHeaders(CACHE_DURATIONS.SHORT),
+        }
+      );
+    }
+
     return NextResponse.json(
       { error: "Failed to create language" },
       {
