@@ -1,19 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectMongoDB } from "@/lib/mongoose";
-import { TranscriptSegment } from "@/models/Video";
+import { Video, TranscriptSegment } from "@/models/Video";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectMongoDB();
 
-    const { id } = await params;
+    const { slug } = await params;
+
+    // First find the video by slug to get its _id
+    const video = await Video.findOne({ slug }).lean();
+    if (!video) {
+      return NextResponse.json({ error: "Video not found" }, { status: 404 });
+    }
+
+    const videoId = String((video as any)._id);
 
     // Get raw transcript (order = -1)
     const rawSegment = (await TranscriptSegment.findOne({
-      videoId: id,
+      videoId,
       order: -1,
     }).lean()) as Record<string, any> | null;
 

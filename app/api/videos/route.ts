@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const formattedVideos = videos.map((video) => ({
       _id: String(video._id),
       name: String(video.name),
+      slug: String(video.slug),
       url: String(video.url),
       youtubeId: String(video.youtubeId),
       language: String(video.language),

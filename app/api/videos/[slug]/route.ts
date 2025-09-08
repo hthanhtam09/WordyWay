@@ -4,14 +4,14 @@ import { Video } from "@/models/Video";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectMongoDB();
 
-    const { id } = await params;
+    const { slug } = await params;
 
-    const video = (await Video.findById(id).lean()) as Record<
+    const video = (await Video.findOne({ slug }).lean()) as Record<
       string,
       any
     > | null;
@@ -22,6 +22,7 @@ export async function GET(
     const formattedVideo = {
       _id: String(video._id),
       name: String(video.name),
+      slug: String(video.slug),
       url: String(video.url),
       youtubeId: String(video.youtubeId),
       language: String(video.language),

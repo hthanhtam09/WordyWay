@@ -1,18 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { ILanguage } from "@/types";
-import LanguageSelector from "@/components/LanguageSelector";
+// import LanguageSelector from "@/components/LanguageSelector";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import EmptyState from "@/components/EmptyState";
 
 export default function HomePage() {
-  const router = useRouter();
-  const [languages, setLanguages] = useState<ILanguage[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState<ILanguage | null>(
-    null
-  );
+  // const router = useRouter();
+  const [, setLanguages] = useState<ILanguage[]>([]);
+  const [, setSelectedLanguage] = useState<ILanguage | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,16 +44,6 @@ export default function HomePage() {
 
     fetchLanguages();
   }, []);
-
-  const handleLanguageChange = (language: ILanguage) => {
-    setSelectedLanguage(language);
-  };
-
-  const handleStartLearning = () => {
-    if (selectedLanguage) {
-      router.push(`/workbook/${selectedLanguage.code}`);
-    }
-  };
 
   if (isLoading) {
     return <LoadingSpinner fullScreen />;

@@ -2,18 +2,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
-export function useVideoDetail(id: string) {
-    const video = useQuery({
-        queryKey: ["video", id],
-        queryFn: async () => (await api.getVideo(id)).video,
-        enabled: !!id,
-    });
+export function useVideoDetail(slug: string) {
+  const video = useQuery({
+    queryKey: ["video", slug],
+    queryFn: async () => (await api.getVideo(slug)).video,
+    enabled: !!slug,
+  });
 
-    const transcriptText = useQuery({
-        queryKey: ["transcript-text", id],
-        queryFn: async () => (await api.getTranscriptText(id)).transcript,
-        enabled: !!id,
-    });
+  const transcriptText = useQuery({
+    queryKey: ["transcript-text", slug],
+    queryFn: async () => (await api.getTranscriptText(slug)).transcript,
+    enabled: !!slug,
+  });
 
-    return { video, transcriptText };
+  return { video, transcriptText };
 }

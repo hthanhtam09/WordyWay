@@ -99,7 +99,7 @@ export default function VideosPage() {
             {videos.map((video) => (
               <Link
                 key={video._id}
-                href={`/videos/${encodeURIComponent(video._id)}`}
+                href={`/videos/${encodeURIComponent(video.slug)}`}
                 className="bg-card rounded-lg shadow-sm border border-border p-6 hover:shadow-md transition-shadow group focus:outline-none focus:ring-2 focus:ring-primary"
                 aria-label={`Open video ${video.name}`}
               >
