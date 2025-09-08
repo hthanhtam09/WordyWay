@@ -9,6 +9,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorState from "@/components/ErrorState";
 import EmptyState from "@/components/EmptyState";
 import { api } from "@/lib/api";
+import type { ILanguage, IVocabulary } from "@/types";
 
 export default function WorkbookPage() {
   const params = useParams();
@@ -24,7 +25,7 @@ export default function WorkbookPage() {
     error: languageError,
   } = useQuery({
     queryKey: ["language", languageCode],
-    queryFn: () => api.fetchLanguageByCode(languageCode),
+    queryFn: () => api.fetchLanguageByCode(languageCode) as Promise<ILanguage>,
     enabled: !!languageCode,
   });
 
@@ -34,7 +35,7 @@ export default function WorkbookPage() {
     error: topicsError,
   } = useQuery({
     queryKey: ["topics", languageCode],
-    queryFn: () => api.fetchTopics(languageCode),
+    queryFn: () => api.fetchTopics(languageCode) as Promise<string[]>,
     enabled: !!languageCode,
   });
 
@@ -61,15 +62,15 @@ export default function WorkbookPage() {
     error: vocabularyError,
   } = useQuery({
     queryKey: ["vocabulary", languageCode, decodedTopic],
-    queryFn: () => api.fetchVocabulary(languageCode, decodedTopic),
+    queryFn: () =>
+      api.fetchVocabulary(languageCode, decodedTopic) as Promise<IVocabulary[]>,
     enabled: !!languageCode && !!decodedTopic,
   });
 
   // Filter vocabulary to only include items that match the main topic
-  const filteredVocabulary =
-    vocabulary?.filter(
-      (item) => extractMainTopic(item.category) === decodedTopic
-    ) || [];
+  const filteredVocabulary: IVocabulary[] = (vocabulary || []).filter(
+    (item) => extractMainTopic(item.category) === decodedTopic
+  );
 
   const isLoading = isLoadingLanguage || isLoadingTopics || isLoadingVocabulary;
   const error =

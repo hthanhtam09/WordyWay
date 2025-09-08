@@ -1,132 +1,163 @@
 "use client";
-
 import { useState } from "react";
-import { ILanguage } from "@/types";
+import { useLanguages } from "@/hooks/useLanguages";
+import { cn } from "@/lib/utils";
 
-interface LanguageSelectorProps {
-  languages: ILanguage[];
-  selectedLanguage: ILanguage | null;
-  onLanguageChange: (language: ILanguage) => void;
-}
-
-const LanguageSelector = ({
-  languages,
-  selectedLanguage,
-  onLanguageChange,
-}: LanguageSelectorProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleLanguageSelect = (language: ILanguage) => {
-    onLanguageChange(language);
-    setIsOpen(false);
-  };
-
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent, language: ILanguage) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handleLanguageSelect(language);
-    }
-  };
-
-  return (
-    <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-      <h2 className="text-lg font-semibold mb-4 text-card-foreground">
-        Select Language
-      </h2>
-
-      <div className="relative">
-        <button
-          onClick={toggleDropdown}
-          onKeyDown={(e) => e.key === "Enter" && toggleDropdown()}
-          className="w-full flex items-center justify-between px-4 py-3 text-left bg-secondary border border-input rounded-lg hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
-          aria-haspopup="listbox"
-          aria-expanded={isOpen}
-          aria-label="Select language"
-        >
-          <div className="flex items-center space-x-3">
-            {selectedLanguage && (
-              <>
-                <span className="text-2xl">{selectedLanguage.flag}</span>
-                <span className="font-medium text-card-foreground">
-                  {selectedLanguage.name}
-                </span>
-              </>
-            )}
-          </div>
-          <svg
-            className={`w-5 h-5 text-muted-foreground transition-transform ${
-              isOpen ? "rotate-180" : ""
-            }`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </button>
-
-        {isOpen && (
-          <div className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-60 overflow-auto">
-            {languages.map((language) => (
-              <div
-                key={language._id}
-                onClick={() => handleLanguageSelect(language)}
-                onKeyDown={(e) => handleKeyDown(e, language)}
-                className="flex items-center space-x-3 px-4 py-3 hover:bg-accent cursor-pointer focus:bg-accent focus:outline-none"
-                tabIndex={0}
-                role="option"
-                aria-selected={selectedLanguage?._id === language._id}
-              >
-                <span className="text-2xl">{language.flag}</span>
-                <span className="font-medium text-popover-foreground">
-                  {language.name}
-                </span>
-                {selectedLanguage?._id === language._id && (
-                  <svg
-                    className="w-5 h-5 text-primary ml-auto"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {selectedLanguage && (
-        <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
-          <div className="flex items-center space-x-3">
-            <span className="text-2xl">{selectedLanguage.flag}</span>
-            <div>
-              <h3 className="font-semibold text-primary">
-                {selectedLanguage.name} Selected
-              </h3>
-              <p className="text-sm text-primary/80">
-                Ready to start learning? Click the button below to begin your
-                journey.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+type Props = {
+    selectedLanguage?: string;
+    onLanguageChange: (language: string | undefined) => void;
+    className?: string;
 };
 
-export default LanguageSelector;
+export default function LanguageSelector({
+    selectedLanguage,
+    onLanguageChange,
+    className,
+}: Props) {
+    const { data: languages, isLoading } = useLanguages();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const selectedLang = languages?.find(
+        (lang) => lang.code === selectedLanguage
+    );
+
+    const handleLanguageSelect = (code: string) => {
+        if (code === selectedLanguage) {
+            onLanguageChange(undefined); // Deselect if same language clicked
+        } else {
+            onLanguageChange(code);
+        }
+        setIsOpen(false);
+    };
+
+    if (isLoading) {
+        return (
+            <div className="inline-flex items-center px-4 py-2 border border-border rounded-md shadow-sm text-sm font-medium text-muted-foreground bg-secondary cursor-not-allowed">
+                <span className="animate-pulse">Loading languages...</span>
+            </div>
+        );
+    }
+
+    return (
+        <div className={cn("relative", className)}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+                className="relative w-full cursor-default rounded-md bg-secondary py-2 pl-3 pr-10 text-left text-foreground shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm border border-border"
+            >
+                <span className="flex items-center">
+                    <span className="mr-2 text-lg">{selectedLang?.flag || "🌐"}</span>
+                    <span className="block truncate">
+                        {selectedLang?.name || "All Languages"}
+                    </span>
+                </span>
+                <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                    <svg
+                        className="h-5 w-5 text-muted-foreground"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 9l4-4 4 4m0 6l-4 4-4-4"
+                        />
+                    </svg>
+                </span>
+            </button>
+
+            {isOpen && (
+                <div
+                    role="listbox"
+                    aria-label="Select language"
+                    className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-card py-1 text-base shadow-lg border border-border focus:outline-none sm:text-sm"
+                >
+                    {/* All Languages option */}
+                    <div
+                        role="option"
+                        tabIndex={0}
+                        aria-selected={!selectedLanguage}
+                        onClick={() => handleLanguageSelect("")}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") handleLanguageSelect("");
+                        }}
+                        className={cn(
+                            "relative cursor-default select-none py-2 pl-10 pr-4",
+                            !selectedLanguage
+                                ? "bg-primary text-primary-foreground"
+                                : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                        )}
+                    >
+                        <span className="flex items-center">
+                            <span className="mr-2 text-lg">🌐</span>
+                            All Languages
+                        </span>
+                        {!selectedLanguage && (
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                <svg
+                                    className="h-5 w-5"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                            </span>
+                        )}
+                    </div>
+
+                    {languages?.map((lang) => (
+                        <div
+                            key={lang.code}
+                            role="option"
+                            tabIndex={0}
+                            aria-selected={selectedLanguage === lang.code}
+                            onClick={() => handleLanguageSelect(lang.code)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ")
+                                    handleLanguageSelect(lang.code);
+                            }}
+                            className={cn(
+                                "relative cursor-default select-none py-2 pl-10 pr-4",
+                                selectedLanguage === lang.code
+                                    ? "bg-primary text-primary-foreground"
+                                    : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                            )}
+                        >
+                            <span className="flex items-center">
+                                <span className="mr-2 text-lg">{lang.flag}</span>
+                                {lang.name}
+                            </span>
+                            {selectedLanguage === lang.code && (
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <svg
+                                        className="h-5 w-5"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                </span>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Click outside to close */}
+            {isOpen && (
+                <div className="fixed inset-0 z-0" onClick={() => setIsOpen(false)} />
+            )}
+        </div>
+    );
+}

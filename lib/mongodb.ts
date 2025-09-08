@@ -1,90 +1,38 @@
-import mongoose from "mongoose";
-import { config } from "dotenv";
-import path from "path";
+import { MongoClient, Db } from "mongodb";
 
-// Load environment variables if not already loaded
-if (!process.env.MONGODB_URI) {
-  const envPath = path.resolve(process.cwd(), ".env.local");
-  config({ path: envPath });
-}
+let client: MongoClient;
+let db: Db;
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-// Don't throw error during build time, only at runtime
-if (!MONGODB_URI && typeof window === "undefined") {
-  console.warn(
-    "MONGODB_URI environment variable is not set. Database operations will fail at runtime."
-  );
-}
-
-interface Cached {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
-}
-
-let cached: Cached = (global as { mongoose?: Cached }).mongoose || {
-  conn: null,
-  promise: null,
-};
-
-if (!cached) {
-  cached = (global as { mongoose?: Cached }).mongoose = {
-    conn: null,
-    promise: null,
-  };
-}
-
-export const connectToDatabase = async () => {
-  // Check if we're in a build environment
-  if (process.env.NODE_ENV === "production" && !MONGODB_URI) {
-    throw new Error(
-      "MONGODB_URI environment variable is required in production"
-    );
-  }
-
-  // Check if we're building (Vercel build process)
-  if (
-    process.env.VERCEL_ENV === "preview" ||
-    process.env.VERCEL_ENV === "production"
-  ) {
-    if (!MONGODB_URI) {
-      throw new Error(
-        "MONGODB_URI environment variable is required for Vercel deployment"
-      );
+export async function connectToDatabase() {
+    if (db) {
+        return { client, db };
     }
-  }
 
-  if (!MONGODB_URI) {
-    throw new Error(
-      "Please define the MONGODB_URI environment variable inside .env.local"
-    );
-  }
+    const uri = process.env.MONGODB_URI || "mongodb://localhost:27017";
+    const dbName = process.env.MONGODB_DB || "wordyway";
 
-  if (cached.conn) {
-    return cached.conn;
-  }
+    try {
+        client = new MongoClient(uri);
+        await client.connect();
+        db = client.db(dbName);
 
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    };
+        console.log("Connected to MongoDB");
+        return { client, db };
+    } catch (error) {
+        console.error("Failed to connect to MongoDB:", error);
+        throw error;
+    }
+}
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      return mongoose;
-    });
-  }
+export async function getDatabase() {
+    if (!db) {
+        await connectToDatabase();
+    }
+    return db;
+}
 
-  try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null;
-    throw e;
-  }
-
-  return cached.conn;
-};
-
-export default connectToDatabase;
+export async function closeConnection() {
+    if (client) {
+        await client.close();
+    }
+}

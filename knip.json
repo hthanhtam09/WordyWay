@@ -1,0 +1,25 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "project": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "hooks/**/*.ts",
+    "hooks/**/*.tsx",
+    "lib/**/*.ts",
+    "lib/**/*.tsx",
+    "pages/**/*.ts",
+    "pages/**/*.tsx"
+  ],
+  "ignore": [
+    "app/**/page.tsx",
+    "app/**/layout.tsx",
+    "app/**/template.tsx",
+    "app/**/loading.tsx",
+    "app/**/error.tsx",
+    "app/**/not-found.tsx",
+    "app/**/route.ts",
+    "middleware.ts"
+  ]
+}

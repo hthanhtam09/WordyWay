@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { revalidateTag } from "next/cache";
-import connectToDatabase from "@/lib/mongodb";
+import { connectToDatabase } from "@/lib/mongodb";
 import Language from "@/models/Language";
 import {
   CACHE_TAGS,

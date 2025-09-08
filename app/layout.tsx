@@ -5,7 +5,7 @@ import SuspenseWrapper from "@/components/SuspenseWrapper";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Header from "@/components/Header";
-import QueryProvider from "@/components/QueryProvider";
+import Providers from "@/app/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +33,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        <QueryProvider>
+        <Providers>
           <ThemeProvider>
             <ErrorBoundary>
               <div className="min-h-screen flex flex-col">
@@ -44,7 +44,7 @@ export default function RootLayout({
               </div>
             </ErrorBoundary>
           </ThemeProvider>
-        </QueryProvider>
+        </Providers>
       </body>
     </html>
   );

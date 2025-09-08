@@ -121,45 +121,6 @@ export default function HomePage() {
           </p>
         </div>
 
-        {languages.length > 0 ? (
-          <div className="max-w-2xl mx-auto">
-            <LanguageSelector
-              languages={languages}
-              selectedLanguage={selectedLanguage}
-              onLanguageChange={handleLanguageChange}
-            />
-            <div className="mt-8 text-center">
-              <button
-                onClick={handleStartLearning}
-                disabled={!selectedLanguage}
-                className="px-8 py-4 bg-primary text-primary-foreground text-lg font-semibold rounded-lg hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors"
-              >
-                Start Learning
-              </button>
-            </div>
-          </div>
-        ) : (
-          <EmptyState
-            icon={
-              <svg
-                className="w-8 h-8 text-yellow-600 dark:text-yellow-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
-            }
-            title="No Languages Available"
-            description="No languages are currently available for learning. Please check back later."
-          />
-        )}
-
         <div className="mt-16 text-center">
           <h2 className="text-2xl font-semibold text-foreground mb-6">
             Why Choose WordyWay?
