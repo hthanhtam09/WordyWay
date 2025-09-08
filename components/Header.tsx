@@ -30,8 +30,8 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
             <Image
               src="/logo.png"
               alt="WordyWay Logo"
-              width={150}
-              height={150}
+              width={80}
+              height={80}
               className="object-contain"
               priority
             />
