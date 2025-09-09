@@ -35,19 +35,16 @@ function generateSlug(name: string): string {
 }
 
 function extractDurationFromTranscript(transcript: string): number | undefined {
-  // Extract all timestamps from transcript (format: HH:MM:SS.mmm)
-  const timestampRegex = /(\d{2}):(\d{2}):(\d{2})\.(\d{3})/g;
+  // Extract all timestamps from transcript (format: MM:SS)
+  const timestampRegex = /(\d{1,2}):(\d{2})/g;
   const timestamps: number[] = [];
 
   let match;
   while ((match = timestampRegex.exec(transcript)) !== null) {
-    const hours = parseInt(match[1], 10);
-    const minutes = parseInt(match[2], 10);
-    const seconds = parseInt(match[3], 10);
-    const milliseconds = parseInt(match[4], 10);
+    const minutes = parseInt(match[1], 10);
+    const seconds = parseInt(match[2], 10);
 
-    const totalSeconds =
-      hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
+    const totalSeconds = minutes * 60 + seconds;
     timestamps.push(totalSeconds);
   }
 
@@ -211,30 +208,26 @@ async function main() {
 
     await rawSegment.save();
 
-    // Nếu transcript có định dạng thời gian chi tiết (HH:MM:SS.mmm) hoặc marker [MM:SS]
+    // Nếu transcript có định dạng thời gian chi tiết (MM:SS) hoặc marker [MM:SS]
     // → tách & insert segment với startSec chính xác. Nếu không → bỏ qua, sẽ ước lượng khi render.
-    const hasDetailed = /^(\d{2}):(\d{2}):(\d{2})\.(\d{3})/m.test(
-      row.transcript
-    );
-    const hasMarker = /\[\d{1,2}:\d{2}(?::\d{2})?\]/.test(row.transcript);
+    const hasDetailed = /^(\d{1,2}):(\d{2})/m.test(row.transcript);
+    const hasMarker = /\[\d{1,2}:\d{2}\]/.test(row.transcript);
 
     if (hasDetailed) {
       console.log(`  Parsing transcript with detailed timeline...`);
       const lines = row.transcript.replace(/\r/g, "").split("\n");
       let order = 0;
       for (const line of lines) {
-        const m = line.match(/^(\d{2}):(\d{2}):(\d{2})\.(\d{3})\s+(.*)$/);
+        const m = line.match(/^(\d{1,2}):(\d{2})\s+(.*)$/);
         if (!m) continue;
-        const h = parseInt(m[1], 10);
-        const mi = parseInt(m[2], 10);
-        const s = parseInt(m[3], 10);
-        const ms = parseInt(m[4], 10);
-        const startSec = h * 3600 + mi * 60 + s + ms / 1000;
-        const text = m[5].trim();
+        const minutes = parseInt(m[1], 10);
+        const seconds = parseInt(m[2], 10);
+        const startSec = minutes * 60 + seconds;
+        const text = m[3].trim();
         const segment = new TranscriptSegment({
           videoId: video._id.toString(),
           order,
-          startSec: Math.round(startSec * 100) / 100,
+          startSec,
           endSec: null,
           text,
         });
@@ -246,22 +239,17 @@ async function main() {
       console.log(`  Parsing transcript with time markers...`);
       const blocks = row.transcript
         .replace(/\r/g, "")
-        .split(/(?=\[\d{1,2}:\d{2}(?::\d{2})?\])/g)
+        .split(/(?=\[\d{1,2}:\d{2}\])/g)
         .map((s) => s.trim())
         .filter(Boolean);
 
       let order = 0;
       for (const block of blocks) {
-        const match = block.match(
-          /^\[(\d{1,2}:\d{2}(?::\d{2})?)\]\s*([\s\S]*)$/
-        );
+        const match = block.match(/^\[(\d{1,2}:\d{2})\]\s*([\s\S]*)$/);
         if (!match) continue;
         const [, timeStr, text] = match;
         const parts = timeStr.split(":").map(Number);
-        const startSec =
-          parts.length === 3
-            ? parts[0] * 3600 + parts[1] * 60 + parts[2]
-            : parts[0] * 60 + parts[1];
+        const startSec = parts[0] * 60 + parts[1];
         const segment = new TranscriptSegment({
           videoId: video._id.toString(),
           order,

@@ -1,11 +1,14 @@
 "use client";
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import YouTube, { YouTubeProps } from "react-youtube";
 
 type Props = {
   videoId: string;
   onReady?: (player: unknown) => void;
   onTime?: (currentSec: number) => void;
+  onEnd?: () => void;
+  onPause?: () => void;
+  onPlay?: () => void;
   playerRef?: React.MutableRefObject<unknown>;
   autoplay?: boolean;
   onFullscreenChange?: (isFullscreen: boolean) => void;
@@ -15,12 +18,17 @@ export default function YouTubePlayer({
   videoId,
   onReady,
   onTime,
+  onEnd,
+  onPause,
+  onPlay,
   playerRef: externalPlayerRef,
   autoplay = false,
   onFullscreenChange,
 }: Props) {
   const internalPlayerRef = useRef<unknown>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTimeRef = useRef<number>(0);
+  const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleReady: YouTubeProps["onReady"] = useCallback(
     (event: Parameters<NonNullable<YouTubeProps["onReady"]>>[0]) => {
@@ -52,6 +60,7 @@ export default function YouTubePlayer({
       intervalRef.current = setInterval(() => {
         const t = event.target?.getCurrentTime?.();
         if (typeof t === "number") {
+          lastTimeRef.current = t;
           onTime?.(t);
         }
       }, 400);
@@ -61,9 +70,40 @@ export default function YouTubePlayer({
 
   const handleStateChange: YouTubeProps["onStateChange"] = useCallback(
     (event: Parameters<NonNullable<YouTubeProps["onStateChange"]>>[0]) => {
-      // Listen for fullscreen state changes
+      // Listen for video end (state 0 = ended)
+      if (event.data === 0) {
+        onEnd?.();
+      }
+
+      // Listen for pause state (state 2 = paused)
+      if (event.data === 2) {
+        // Clear any existing pause timeout
+        if (pauseTimeoutRef.current) {
+          clearTimeout(pauseTimeoutRef.current);
+        }
+
+        // Delay pause event to distinguish between seeking and actual pause
+        pauseTimeoutRef.current = setTimeout(() => {
+          const currentTime = event.target?.getCurrentTime?.();
+          // Only trigger pause if time hasn't changed significantly (not seeking)
+          if (
+            typeof currentTime === "number" &&
+            Math.abs(currentTime - lastTimeRef.current) < 1
+          ) {
+            onPause?.();
+          }
+        }, 100);
+      }
+
+      // Listen for play state (state 1 = playing)
       if (event.data === 1) {
-        // Playing state
+        // Clear pause timeout when playing
+        if (pauseTimeoutRef.current) {
+          clearTimeout(pauseTimeoutRef.current);
+          pauseTimeoutRef.current = null;
+        }
+
+        onPlay?.();
         // Check if player is in fullscreen mode
         const player = event.target as any;
         if (player?.isFullscreen && typeof player.isFullscreen === "function") {
@@ -72,8 +112,17 @@ export default function YouTubePlayer({
         }
       }
     },
-    [onFullscreenChange]
+    [onEnd, onPause, onPlay, onFullscreenChange]
   );
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const opts: YouTubeProps["opts"] = {
     height: "100%",

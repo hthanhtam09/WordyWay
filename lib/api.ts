@@ -41,6 +41,21 @@ export const api = {
     return baseFetch<{ transcript: string }>(`/api/videos/${slug}/transcript`);
   },
 
+  getTranscriptSegments: async (slug: string) => {
+    return baseFetch<{
+      segments: Array<{
+        _id: string;
+        videoId: string;
+        order: number;
+        startSec: number;
+        endSec: number | null;
+        text: string;
+        createdAt?: Date;
+        updatedAt?: Date;
+      }>;
+    }>(`/api/videos/${slug}/segments`);
+  },
+
   getLanguages: async () => {
     await new Promise((resolve) => setTimeout(resolve, 100));
     return { languages: availableLanguages };

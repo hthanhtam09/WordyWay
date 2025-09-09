@@ -15,5 +15,11 @@ export function useVideoDetail(slug: string) {
     enabled: !!slug,
   });
 
-  return { video, transcriptText };
+  const transcriptSegments = useQuery({
+    queryKey: ["transcript-segments", slug],
+    queryFn: async () => (await api.getTranscriptSegments(slug)).segments,
+    enabled: !!slug,
+  });
+
+  return { video, transcriptText, transcriptSegments };
 }

@@ -2,12 +2,22 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import YouTubePlayer from "./YouTubePlayer";
 import TranscriptPanel from "@/components/transcript/TranscriptPanel";
-import { parseTranscript } from "@/lib/transcript";
+import VideoEndOverlay from "./VideoEndOverlay";
+import VideoPauseOverlay from "./VideoPauseOverlay";
 
 type Props = {
   videoId: string;
   videoTitle: string;
-  rawTranscript: string;
+  segments: Array<{
+    _id: string;
+    videoId: string;
+    order: number;
+    startSec: number;
+    endSec: number | null;
+    text: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+  }>;
   slug: string;
   durationSec?: number | null;
   onBack?: () => void;
@@ -16,7 +26,7 @@ type Props = {
 export default function FullscreenVideoPlayer({
   videoId,
   videoTitle,
-  rawTranscript,
+  segments,
   slug,
   durationSec,
   onBack,
@@ -27,13 +37,8 @@ export default function FullscreenVideoPlayer({
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
-
-  const parse = useCallback(
-    (text: string) => {
-      return parseTranscript(slug, text, duration || undefined);
-    },
-    [slug, duration]
-  );
+  const [isVideoEnded, setIsVideoEnded] = useState(false);
+  const [isVideoPaused, setIsVideoPaused] = useState(false);
 
   const handleToggleFullscreen = useCallback(() => {
     setIsFullscreen((prev) => !prev);
@@ -41,6 +46,38 @@ export default function FullscreenVideoPlayer({
 
   const handleExitFullscreen = useCallback(() => {
     setIsFullscreen(false);
+  }, []);
+
+  const handleVideoEnd = useCallback(() => {
+    setIsVideoEnded(true);
+  }, []);
+
+  const handleReplay = useCallback(() => {
+    setIsVideoEnded(false);
+    // Reset video to beginning
+    const player = playerRef.current as any;
+    if (player?.seekTo) {
+      player.seekTo(0, true);
+    }
+    if (player?.playVideo) {
+      player.playVideo();
+    }
+  }, []);
+
+  const handleVideoPause = useCallback(() => {
+    setIsVideoPaused(true);
+  }, []);
+
+  const handleVideoPlay = useCallback(() => {
+    setIsVideoPaused(false);
+  }, []);
+
+  const handleContinuePlay = useCallback(() => {
+    setIsVideoPaused(false);
+    const player = playerRef.current as any;
+    if (player?.playVideo) {
+      player.playVideo();
+    }
   }, []);
 
   // Detect device type and screen size
@@ -132,7 +169,7 @@ export default function FullscreenVideoPlayer({
           </div>
 
           {/* Video Player */}
-          <div className="flex-1 p-2 lg:p-4">
+          <div className="flex-1 p-2 lg:p-4 relative">
             <YouTubePlayer
               videoId={videoId}
               playerRef={playerRef}
@@ -142,6 +179,14 @@ export default function FullscreenVideoPlayer({
                 if (typeof d === "number" && d > 0) setDuration(Math.floor(d));
               }}
               onTime={(t) => setCurrentTime(t)}
+              onEnd={handleVideoEnd}
+              onPause={handleVideoPause}
+              onPlay={handleVideoPlay}
+            />
+            <VideoEndOverlay onReplay={handleReplay} isVisible={isVideoEnded} />
+            <VideoPauseOverlay
+              onPlay={handleContinuePlay}
+              isVisible={isVideoPaused}
             />
           </div>
         </div>
@@ -155,12 +200,10 @@ export default function FullscreenVideoPlayer({
           bg-gray-900
         `}
         >
-          {rawTranscript ? (
+          {segments && segments.length > 0 ? (
             <TranscriptPanel
-              rawTranscript={rawTranscript}
+              segments={segments}
               playerRef={playerRef}
-              durationSec={duration}
-              parse={parse}
               currentTime={currentTime}
               title="Transcript"
             />
@@ -185,6 +228,9 @@ export default function FullscreenVideoPlayer({
           if (typeof d === "number" && d > 0) setDuration(Math.floor(d));
         }}
         onTime={(t) => setCurrentTime(t)}
+        onEnd={handleVideoEnd}
+        onPause={handleVideoPause}
+        onPlay={handleVideoPlay}
       />
 
       {/* Fullscreen Button Overlay */}
@@ -215,6 +261,11 @@ export default function FullscreenVideoPlayer({
           </svg>
         </button>
       </div>
+      <VideoEndOverlay onReplay={handleReplay} isVisible={isVideoEnded} />
+      <VideoPauseOverlay
+        onPlay={handleContinuePlay}
+        isVisible={isVideoPaused}
+      />
     </div>
   );
 }

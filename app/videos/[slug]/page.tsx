@@ -13,13 +13,13 @@ export default function VideoDetailPage({
 }) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const { video, transcriptText } = useVideoDetail(resolvedParams.slug);
+  const { video, transcriptSegments } = useVideoDetail(resolvedParams.slug);
 
   const handleBack = () => {
     router.push("/videos");
   };
 
-  if (video.isLoading || transcriptText.isLoading) {
+  if (video.isLoading || transcriptSegments.isLoading) {
     return (
       <div className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
         <div className="max-w-7xl mx-auto">
@@ -52,7 +52,7 @@ export default function VideoDetailPage({
     <FullscreenVideoPlayer
       videoId={video.data.youtubeId}
       videoTitle={video.data.name}
-      rawTranscript={transcriptText.data || ""}
+      segments={transcriptSegments.data || []}
       slug={resolvedParams.slug}
       onBack={handleBack}
     />
