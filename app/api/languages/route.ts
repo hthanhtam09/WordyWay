@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { revalidateTag } from "next/cache";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectMongoDB } from "@/lib/mongoose";
 import Language from "@/models/Language";
 import {
   CACHE_TAGS,
@@ -14,7 +14,7 @@ import {
 const getCachedLanguages = unstable_cache(
   async () => {
     try {
-      await connectToDatabase();
+      await connectMongoDB();
       return await Language.find({ isActive: true }).sort({ name: 1 });
     } catch (error) {
       console.error("Database connection error:", error);
@@ -74,7 +74,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await connectToDatabase();
+    await connectMongoDB();
     const body = await request.json();
 
     const language = new Language(body);
