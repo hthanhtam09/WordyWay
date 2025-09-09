@@ -6,6 +6,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Header from "@/components/Header";
 import Providers from "@/app/providers";
+const siteUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com");
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,9 +19,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WordyWay - Language Learning App",
-  description:
-    "Learn languages with interactive vocabulary and pronunciation guides",
+  metadataBase: siteUrl,
+  title: {
+    default: "Brand Name — Value Proposition",
+    template: "%s | Brand Name",
+  },
+  description: "One-line compelling description (≤160 chars).",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: siteUrl,
+    siteName: "Brand Name",
+    title: "Brand Name — Value Proposition",
+    description: "One-line compelling description.",
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Open Graph Image" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@yourhandle",
+    creator: "@yourhandle",
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({
@@ -29,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="vi" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >

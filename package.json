@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "typecheck": "tsc --noEmit",
+    "build:seo": "next build",
     "analyze:knip": "knip",
     "analyze:prune": "ts-prune -g -d",
     "analyze:deps": "depcheck --specials=eslint,ts-node",

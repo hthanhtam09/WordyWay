@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
             static: 180,
         },
     },
-    // Enable caching headers
+    // Enable caching headers and global AI-protection header
     async headers() {
         return [
             {
@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
                         key: "Cache-Control",
                         value: "public, s-maxage=60, stale-while-revalidate=300",
                     },
+                ],
+            },
+            {
+                source: "/:path*",
+                headers: [
+                    { key: "X-Robots-Tag", value: "noai, noimageai" },
                 ],
             },
         ];
