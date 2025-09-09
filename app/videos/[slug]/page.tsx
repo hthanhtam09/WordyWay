@@ -1,10 +1,8 @@
 "use client";
-import { useRef, useMemo, useState, use } from "react";
+import { use } from "react";
+import { useRouter } from "next/navigation";
 import { useVideoDetail } from "@/hooks/useVideoDetail";
-import { useLanguages } from "@/hooks/useLanguages";
-import YouTubePlayer from "@/components/youtube/YouTubePlayer";
-import TranscriptPanel from "@/components/transcript/TranscriptPanel";
-import { parseTranscript } from "@/lib/transcript";
+import FullscreenVideoPlayer from "@/components/youtube/FullscreenVideoPlayer";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -14,22 +12,12 @@ export default function VideoDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const resolvedParams = use(params);
+  const router = useRouter();
   const { video, transcriptText } = useVideoDetail(resolvedParams.slug);
-  const { data: languages } = useLanguages();
-  const playerRef = useRef<unknown>(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState<number | null>(null);
 
-  const getLanguageInfo = (code: string) => {
-    return languages?.find((lang) => lang.code === code);
+  const handleBack = () => {
+    router.push("/videos");
   };
-
-  const parse = useMemo(() => {
-    if (!transcriptText.data) return () => [];
-    return (t: string) => {
-      return parseTranscript(resolvedParams.slug, t, duration || undefined);
-    };
-  }, [transcriptText.data, duration, resolvedParams.slug]);
 
   if (video.isLoading || transcriptText.isLoading) {
     return (
@@ -61,45 +49,12 @@ export default function VideoDetailPage({
   }
 
   return (
-    <div className="text-muted-foreground p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold">{video.data.name}</h1>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
-          <div className="lg:col-span-3 h-[420px]">
-            <YouTubePlayer
-              videoId={video.data.youtubeId}
-              playerRef={playerRef}
-              onReady={(p) => {
-                const d = (p as any)?.getDuration?.();
-                if (typeof d === "number" && d > 0) setDuration(Math.floor(d));
-              }}
-              onTime={(t) => setCurrentTime(t)}
-            />
-          </div>
-
-          <div className="lg:col-span-2 h-[420px]">
-            {transcriptText.data ? (
-              <TranscriptPanel
-                rawTranscript={transcriptText.data}
-                playerRef={playerRef}
-                durationSec={duration}
-                parse={parse}
-                currentTime={currentTime}
-                title="Transcript"
-              />
-            ) : (
-              <Card className="p-6 text-center text-neutral-500">
-                No transcript available for this video.
-              </Card>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    <FullscreenVideoPlayer
+      videoId={video.data.youtubeId}
+      videoTitle={video.data.name}
+      rawTranscript={transcriptText.data || ""}
+      slug={resolvedParams.slug}
+      onBack={handleBack}
+    />
   );
 }

@@ -3,84 +3,113 @@ import { useRef, useCallback } from "react";
 import YouTube, { YouTubeProps } from "react-youtube";
 
 type Props = {
-    videoId: string;
-    onReady?: (player: unknown) => void;
-    onTime?: (currentSec: number) => void;
-    playerRef?: React.MutableRefObject<unknown>;
+  videoId: string;
+  onReady?: (player: unknown) => void;
+  onTime?: (currentSec: number) => void;
+  playerRef?: React.MutableRefObject<unknown>;
+  autoplay?: boolean;
+  onFullscreenChange?: (isFullscreen: boolean) => void;
 };
 
 export default function YouTubePlayer({
-    videoId,
-    onReady,
-    onTime,
-    playerRef: externalPlayerRef,
+  videoId,
+  onReady,
+  onTime,
+  playerRef: externalPlayerRef,
+  autoplay = false,
+  onFullscreenChange,
 }: Props) {
-    const internalPlayerRef = useRef<unknown>(null);
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const internalPlayerRef = useRef<unknown>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    const handleReady: YouTubeProps["onReady"] = useCallback(
-        (event: Parameters<NonNullable<YouTubeProps["onReady"]>>[0]) => {
-            internalPlayerRef.current = event.target;
-            if (externalPlayerRef) {
-                externalPlayerRef.current = event.target;
-            } else {
-                console.warn("No external player ref provided!");
-            }
-            onReady?.(event.target);
+  const handleReady: YouTubeProps["onReady"] = useCallback(
+    (event: Parameters<NonNullable<YouTubeProps["onReady"]>>[0]) => {
+      internalPlayerRef.current = event.target;
+      if (externalPlayerRef) {
+        externalPlayerRef.current = event.target;
+      } else {
+        console.warn("No external player ref provided!");
+      }
+      onReady?.(event.target);
 
-            // Clear existing interval
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-            }
+      // Attempt autoplay: browsers generally allow autoplay only when muted
+      if (autoplay) {
+        try {
+          (
+            event.target as unknown as { playVideo?: () => void }
+          )?.playVideo?.();
+        } catch {
+          // ignore
+        }
+      }
 
-            // Start time tracking
-            intervalRef.current = setInterval(() => {
-                const t = event.target?.getCurrentTime?.();
-                if (typeof t === "number") {
-                    onTime?.(t);
-                }
-            }, 400);
-        },
-        [onReady, onTime, externalPlayerRef]
-    );
+      // Clear existing interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
 
-    const handleStateChange: YouTubeProps["onStateChange"] =
-        useCallback(() => { }, []);
+      // Start time tracking
+      intervalRef.current = setInterval(() => {
+        const t = event.target?.getCurrentTime?.();
+        if (typeof t === "number") {
+          onTime?.(t);
+        }
+      }, 400);
+    },
+    [onReady, onTime, externalPlayerRef, autoplay]
+  );
 
-    const opts: YouTubeProps["opts"] = {
-        height: "100%",
-        width: "100%",
-        host: "https://www.youtube.com",
-        playerVars: {
-            enablejsapi: 1,
-            controls: 1,
-            rel: 0,
-            modestbranding: 1,
-            iv_load_policy: 3,
-            disablekb: 0,
-            fs: 1,
-            playsinline: 1,
-            origin:
-                typeof window !== "undefined" ? window.location.origin : undefined,
-        },
-    };
+  const handleStateChange: YouTubeProps["onStateChange"] = useCallback(
+    (event: Parameters<NonNullable<YouTubeProps["onStateChange"]>>[0]) => {
+      // Listen for fullscreen state changes
+      if (event.data === 1) {
+        // Playing state
+        // Check if player is in fullscreen mode
+        const player = event.target as any;
+        if (player?.isFullscreen && typeof player.isFullscreen === "function") {
+          const isFullscreen = player.isFullscreen();
+          onFullscreenChange?.(isFullscreen);
+        }
+      }
+    },
+    [onFullscreenChange]
+  );
 
-    return (
-        <div className="relative w-full h-full overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-sm">
-            <YouTube
-                videoId={videoId}
-                opts={opts}
-                onReady={handleReady}
-                onStateChange={handleStateChange}
-                className="w-full h-full"
-                iframeClassName="w-full h-full"
-            />
-        </div>
-    );
+  const opts: YouTubeProps["opts"] = {
+    height: "100%",
+    width: "100%",
+    host: "https://www.youtube.com",
+    playerVars: {
+      enablejsapi: 1,
+      controls: 1,
+      rel: 0,
+      modestbranding: 1,
+      iv_load_policy: 3,
+      disablekb: 0,
+      fs: 1,
+      playsinline: 1,
+      autoplay: autoplay ? 1 : 0,
+      origin:
+        typeof window !== "undefined" ? window.location.origin : undefined,
+    },
+  };
+
+  return (
+    <div className="relative w-full h-full overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-sm">
+      <YouTube
+        videoId={videoId}
+        opts={opts}
+        onReady={handleReady}
+        onStateChange={handleStateChange}
+        className="w-full h-full"
+        iframeClassName="w-full h-full"
+      />
+    </div>
+  );
 }
 
 export function seekTo(player: unknown, sec: number) {
-    (
-        player as { seekTo?: (time: number, allowSeekAhead: boolean) => void }
-    )?.seekTo?.(sec, true);
+  (
+    player as { seekTo?: (time: number, allowSeekAhead: boolean) => void }
+  )?.seekTo?.(sec, true);
 }

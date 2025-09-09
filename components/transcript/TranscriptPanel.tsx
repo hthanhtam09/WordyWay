@@ -108,15 +108,15 @@ export default function TranscriptPanel({
   };
 
   return (
-    <div className="p-3 h-full flex flex-col bg-card text-foreground rounded-2xl border border-border shadow-sm">
-      <div className="mb-3">
+    <div className="p-2 lg:p-3 h-full flex flex-col bg-card text-foreground rounded-2xl border border-border shadow-sm">
+      <div className="mb-2 lg:mb-3">
         {title && (
-          <h2 className="text-xl font-semibold text-foreground mb-2">
+          <h2 className="text-lg lg:text-xl font-semibold text-foreground mb-1 lg:mb-2">
             {title}
           </h2>
         )}
         <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs lg:text-sm text-muted-foreground">
             Auto-scroll transcript
           </div>
           <button
@@ -130,20 +130,25 @@ export default function TranscriptPanel({
             aria-label="Toggle auto scroll transcript"
             tabIndex={0}
             className={clsx(
-              "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+              "relative inline-flex h-5 lg:h-6 w-9 lg:w-11 items-center rounded-full transition-colors",
               autoScrollEnabled ? "bg-primary" : "bg-muted"
             )}
           >
             <span
               className={clsx(
-                "inline-block h-5 w-5 transform rounded-full bg-background transition-transform",
-                autoScrollEnabled ? "translate-x-5" : "translate-x-1"
+                "inline-block h-4 lg:h-5 w-4 lg:w-5 transform rounded-full bg-background transition-transform",
+                autoScrollEnabled
+                  ? "translate-x-4 lg:translate-x-5"
+                  : "translate-x-1"
               )}
             />
           </button>
         </div>
       </div>
-      <div className="space-y-2 flex-1 min-h-0 overflow-y-auto" ref={listRef}>
+      <div
+        className="space-y-1 lg:space-y-2 flex-1 min-h-0 overflow-y-auto"
+        ref={listRef}
+      >
         {segments.map((segment, index) => {
           const isActive =
             currentTime >= segment.startSec &&
@@ -155,7 +160,7 @@ export default function TranscriptPanel({
               data-seg={index}
               onClick={() => handleSegmentClick(segment.startSec)}
               className={clsx(
-                "cursor-pointer rounded-xl p-3 border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "cursor-pointer rounded-lg lg:rounded-xl p-2 lg:p-3 border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 isActive
                   ? "dark:bg-background border-border shadow-sm hover:bg-muted dark:hover:bg-background/90"
                   : "bg-transparent border-transparent hover:bg-muted hover:border-border hover:shadow-sm dark:hover:bg-accent/60"
@@ -177,7 +182,7 @@ export default function TranscriptPanel({
                   <span> - {secToHHMMSS(segment.endSec)}</span>
                 )}
               </div>
-              <div className="leading-relaxed text-foreground">
+              <div className="leading-relaxed text-sm lg:text-base text-foreground">
                 {segment.text}
               </div>
             </div>
