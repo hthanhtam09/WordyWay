@@ -17,11 +17,9 @@ export default async function Og() {
           fontWeight: 700,
         }}
       >
-        Brand Name — Value Proposition
+        WordWay
       </div>
     ),
     size
   );
 }
-
-

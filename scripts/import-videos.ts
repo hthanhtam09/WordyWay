@@ -34,6 +34,31 @@ function generateSlug(name: string): string {
     .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
 }
 
+function extractDurationFromTranscript(transcript: string): number | undefined {
+  // Extract all timestamps from transcript (format: HH:MM:SS.mmm)
+  const timestampRegex = /(\d{2}):(\d{2}):(\d{2})\.(\d{3})/g;
+  const timestamps: number[] = [];
+
+  let match;
+  while ((match = timestampRegex.exec(transcript)) !== null) {
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const seconds = parseInt(match[3], 10);
+    const milliseconds = parseInt(match[4], 10);
+
+    const totalSeconds =
+      hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
+    timestamps.push(totalSeconds);
+  }
+
+  // Return the last timestamp as the duration
+  if (timestamps.length > 0) {
+    return Math.ceil(Math.max(...timestamps));
+  }
+
+  return undefined;
+}
+
 type Row = { name: string; url: string; transcript: string; language: string };
 
 // Robust CSV parser that supports quoted fields containing commas and newlines
@@ -158,12 +183,19 @@ async function main() {
       continue;
     }
 
+    // Extract duration from transcript
+    const durationSec = extractDurationFromTranscript(row.transcript);
+    console.log(
+      `  Duration: ${durationSec ? `${Math.floor(durationSec / 60)}:${(durationSec % 60).toString().padStart(2, "0")}` : "Unknown"}`
+    );
+
     const video = new Video({
       name: row.name,
       slug,
       url: row.url,
       youtubeId,
       language: row.language,
+      durationSec,
     });
 
     await video.save();

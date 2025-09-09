@@ -66,21 +66,7 @@ export default function VideoDetailPage({
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold">{video.data.name}</h1>
-            <span className="text-lg">
-              {getLanguageInfo(video.data.language)?.flag}
-            </span>
-            <span className="text-sm text-neutral-400">
-              {getLanguageInfo(video.data.language)?.name}
-            </span>
           </div>
-          <p className="text-neutral-400">
-            Duration:{" "}
-            {duration
-              ? `${Math.floor(duration / 60)}:${(duration % 60)
-                  .toString()
-                  .padStart(2, "0")}`
-              : "Loading..."}
-          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
