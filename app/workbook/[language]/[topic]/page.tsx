@@ -61,13 +61,12 @@ export default function WorkbookPage() {
     isLoading: isLoadingVocabulary,
     error: vocabularyError,
   } = useQuery({
-    queryKey: ["vocabulary", languageCode, decodedTopic],
-    queryFn: () =>
-      api.fetchVocabulary(languageCode, decodedTopic) as Promise<IVocabulary[]>,
-    enabled: !!languageCode && !!decodedTopic,
+    queryKey: ["vocabulary", languageCode],
+    queryFn: () => api.fetchVocabulary(languageCode) as Promise<IVocabulary[]>,
+    enabled: !!languageCode,
   });
 
-  // Filter vocabulary to only include items that match the main topic
+  // Filter vocabulary to include both words and phrases for the main topic
   const filteredVocabulary: IVocabulary[] = (vocabulary || []).filter(
     (item) => extractMainTopic(item.category) === decodedTopic
   );
@@ -88,8 +87,8 @@ export default function WorkbookPage() {
           error === "Language not found"
             ? "The requested language could not be found. Please check the URL or go back to the workbooks page."
             : error === "Topic not found"
-            ? "The requested topic could not be found. Please check the URL or go back to the language workbook."
-            : "Something went wrong. Please try again or go back to the previous page."
+              ? "The requested topic could not be found. Please check the URL or go back to the language workbook."
+              : "Something went wrong. Please try again or go back to the previous page."
         }
         actions={
           <div className="space-y-3">

@@ -38,7 +38,14 @@ export function groupVocabularyByCategory(vocabulary: any[]) {
 // Additional utilities used by pages/components
 export const extractMainTopic = (category: string): string => {
   if (!category) return "General";
-  return String(category).split(":")[0].trim();
+  // Remove "(Phrases)" suffix to group phrases with their main topic
+  const mainTopic = String(category).split(":")[0].trim();
+  return mainTopic.replace(/\s*\(Phrases\)\s*$/, "");
+};
+
+export const isPhraseCategory = (category: string): boolean => {
+  if (!category) return false;
+  return String(category).includes("(Phrases)");
 };
 
 export const createTopicPath = (
