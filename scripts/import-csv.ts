@@ -8,7 +8,7 @@ const envPath = path.resolve(process.cwd(), ".env.local");
 config({ path: envPath });
 
 // Now import other modules after environment variables are loaded
-import { connectToDatabase } from "../lib/mongodb";
+import { connectMongoDB } from "../lib/mongoose";
 import Vocabulary from "../models/Vocabulary";
 import Language from "../models/Language";
 import Papa from "papaparse";
@@ -53,7 +53,7 @@ const handleImport = async (options: ImportOptions): Promise<void> => {
 
     // Connect to database
     console.log("🔌 Connecting to database...");
-    await connectToDatabase();
+    await connectMongoDB();
     console.log("✅ Database connected successfully");
 
     // Check if language exists, if not create it automatically

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { revalidateTag } from "next/cache";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectMongoDB } from "@/lib/mongoose";
 import Vocabulary from "@/models/Vocabulary";
 import {
   CACHE_TAGS,
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     const vocabulary = await unstable_cache(
       async () => {
         try {
-          await connectToDatabase();
+          await connectMongoDB();
 
           const filter: {
             isActive: boolean;
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await connectToDatabase();
+    await connectMongoDB();
     const body = await request.json();
 
     const vocabulary = new Vocabulary(body);
