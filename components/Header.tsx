@@ -57,6 +57,12 @@ const Header: React.FC<HeaderProps> = ({ className = "" }) => {
                         >
                             Videos
                         </Link>
+                        <Link
+                            href="/listen-type"
+                            className="text-sm font-medium text-muted-foreground hover:text-card-foreground transition-colors duration-200"
+                        >
+                            Listen & Type
+                        </Link>
                     </nav>
 
                     {/* Theme Toggle */}

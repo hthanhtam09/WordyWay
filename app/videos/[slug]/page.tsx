@@ -3,7 +3,6 @@ import { use } from "react";
 import { useRouter } from "next/navigation";
 import { useVideoDetail } from "@/hooks/useVideoDetail";
 import FullscreenVideoPlayer from "@/components/youtube/FullscreenVideoPlayer";
-import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function VideoDetailPage({

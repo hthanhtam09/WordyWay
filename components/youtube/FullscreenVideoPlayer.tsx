@@ -27,13 +27,12 @@ export default function FullscreenVideoPlayer({
   videoId,
   videoTitle,
   segments,
-  slug,
   durationSec,
   onBack,
 }: Props) {
   const playerRef = useRef<unknown>(null);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState<number | null>(durationSec || null);
+  const [, setDuration] = useState<number | null>(durationSec || null);
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
