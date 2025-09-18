@@ -20,6 +20,7 @@
     "merge-csv": "tsx scripts/merge-csv.ts",
     "import:videos": "tsx scripts/import-videos.ts ./data/videos.csv",
     "import:listen-type": "tsx scripts/import-listen-type.ts ./data/listen_type.csv",
+    "import:books": "tsx scripts/import-books.ts ./data/books.csv",
     "test:cloudinary": "tsx scripts/test-cloudinary-integration.ts",
     "test:audio": "tsx scripts/test-audio-playback.ts",
     "test": "jest",
