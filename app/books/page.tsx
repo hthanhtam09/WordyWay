@@ -93,7 +93,7 @@ const FreeBooksPage = () => {
                 <Card className="h-full border-border hover:border-primary/50 transition-colors duration-300">
                   <CardContent className="p-0">
                     {/* Book Cover */}
-                    <div className="relative h-64 bg-muted flex items-center justify-center overflow-hidden">
+                    <div className="relative h-64 bg-muted flex items-center justify-center overflow-hidden rounded-t-2xl">
                       <Image
                         src={book.bookImageUrl}
                         alt={book.name}
