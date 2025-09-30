@@ -1,4 +1,0 @@
-Files scanned: 64
-Imports removed: 0
-Type-only imports converted: 0
-Local definitions removed: 0
